@@ -12,6 +12,8 @@ This rule will link any accounts that have the same email address.
 ```js
 function (user, context, callback) {
   var request = require('request@2.56.0');
+  var userApiUrl = auth0.baseUrl + '/users';
+  
   // Check if email is verified, we shouldn't automatically
   // merge accounts if this is not the case.
   if (!user.email_verified) {
@@ -19,7 +21,7 @@ function (user, context, callback) {
   }
 
   request({
-   url: auth0.baseUrl + '/users',
+   url: userApiUrl,
    headers: {
      Authorization: 'Bearer ' + auth0.accessToken
    },
