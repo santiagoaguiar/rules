@@ -59,8 +59,8 @@ function (user, context, callback) {
 
         // user created, add sessionToken to user profile
         if (response.statusCode === 200) {
-          user.apperyio_session_token = body.sessionToken;
-          user.apperyio_userId = body._id;
+          context.idToken['https://example.com/apperyio_session_token'] = body.sessionToken;
+          context.idToken['https://example.com/apperyio_user_id'] = body._id;
           return callback(null, user, context);
         }
 

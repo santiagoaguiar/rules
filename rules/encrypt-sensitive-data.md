@@ -10,12 +10,11 @@ This rule will set a sensitive value in the app_metadata and encrypt it (see the
 
 ```js
 function (user, context, callback) {
-  user.app_metadata = user.app_metadata || { };
-  user.app_metadata.private_data = encrypt({
+  context.idToken['https://example.com/private_data'] = encrypt({
     license_key: '1234567',
     social_security_number: '56789'
   });
-  
+
   callback(null, user, context);
 
   function encrypt(data) {

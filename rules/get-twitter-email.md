@@ -80,7 +80,7 @@ function(user, context, callback) {
       // Might not want to fail in this case
       return callback(new Error('Twitter did not return an email address'));
     } else {
-      user.email = result.email;
+      context.idToken.email = result.email;
       return callback(null, user, context);
     }
   });

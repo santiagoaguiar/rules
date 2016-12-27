@@ -12,7 +12,7 @@ For more information on the Box APIs used in this rule see: https://developers.b
 
 > Note: these Box APIs are still in beta.
 
-```
+```js
 function(user, context, callback) {
 
   var boxClientId = configuration.clientId;
@@ -20,18 +20,22 @@ function(user, context, callback) {
   var boxEnterpriseId = configuration.enterpriseId;
   var privateKey = '-----BEGIN RSA PRIVATE KEY-----\n' + //TODO: REPLACE WITH YOUR OWN PRIVATE KEY
                    'MIIEpAIBAAKCAQEA0VrAkAPyX8o1/zrdMoeerq+ATEX0ZOsL+r86JRM+r8T1wrc/\n' +
-                   'OupiWe5TlefCf2EjHv0YrlC6/H6fcpQm42MMGGr3lOg3CsiywJano5mD9/sRjEJ0\n' +  
-                   '........\n' + 
+                   'OupiWe5TlefCf2EjHv0YrlC6/H6fcpQm42MMGGr3lOg3CsiywJano5mD9/sRjEJ0\n' +
+                   '........\n' +
                    '-----END RSA PRIVATE KEY-----';
 
   //Check if the user has already been provisioned in Box
-  if(user.box_id){
-    getBoxAccessToken(boxClientId, boxClientSecret, 
-                     user.box_id, "user", privateKey, function(e,token){
-      if(e) return callback(e,user,context);
-      user.box_access_token = token;
+  if (user.app_metadata.box_id) {
+    getBoxAccessToken(boxClientId,
+                      boxClientSecret,
+                      user.box_id,
+                      'user',
+                      privateKey,
+                      function (e, token) {
+      if (e) { return callback(e,user,context); }
+      context.idToken['https://example.com/box_access_token'] = token;
       return callback(null,user,context);
-   });  
+   });
   }
 
   // If the user is *NOT* in Box:
@@ -39,17 +43,22 @@ function(user, context, callback) {
   // 2. Provision the user using the /users API
   // 3. Save the ID in the box_id property for next time
   // 4. Get a Box User access_token
-  
-  getBoxAccessToken(boxClientId, boxClientSecret, 
+
+  getBoxAccessToken(boxClientId, boxClientSecret,
                     boxEnterpriseId, "enterprise", privateKey, function(e,token){
-    createUser(user, token.access_token, function(e,u){
-      if(e) return callback(e,user,context);
-      user.persistent.box_id = u.id; //Save property in users' metadata
-      getBoxAccessToken(boxClientId, boxClientSecret, 
-                        u.id, "user", privateKey, function(e,token){
-        if(e) return callback(e,user,context);
-        user.box_access_token = token;
-        return callback(null,user,context); //We are done!
+    createUser(user, token.access_token, function(err, u) {
+      if (err) { return callback(err); }
+      user.app_metadata.box_id = u.id;
+      context.idToken['https://example.com/box_access_token'] = token;
+      auth0.users.updateAppMetadata(user.user_id, user.app_metadata)
+        .then(function () {
+          getBoxAccessToken(boxClientId, boxClientSecret, u.id, "user", privateKey, function(err, token) {
+            if (err) { return callback(err); }
+            user.box_access_token = token;
+            callback(null,user,context); //We are done!
+        }).catch(function (err) {
+          callback(err);
+        });
      });
     });
   });
@@ -71,7 +80,7 @@ function(user, context, callback) {
       });
   }
 
-  function getBoxAccessToken(boxClientId, boxClientSecret, 
+  function getBoxAccessToken(boxClientId, boxClientSecret,
                              boxUserEnterpriseId, boxSubType, privateKey, done){
     var jwtOptions = {
       algorithm: 'RS256',
@@ -99,7 +108,7 @@ function(user, context, callback) {
           done(null, JSON.parse(b));
         });
   }
-     
+
   function uid(len) {
     var buf = []
     , chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'

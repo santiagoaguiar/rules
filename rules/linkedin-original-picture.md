@@ -13,7 +13,7 @@ function (user, context, callback) {
   if (context.connection !== 'linkedin') {
     callback(null, user, context);
   }
-  
+
   var request = require('request');
   var options = {
     url: 'https://api.linkedin.com/v1/people/~/picture-urls::(original)?format=json',
@@ -26,7 +26,7 @@ function (user, context, callback) {
     if (!error && response.statusCode === 200) {
       var json = JSON.parse(response.body);
       if (json.values && json.values.length >= 1) {
-        user.picture = json.values[0];
+        context.idToken.picture = json.values[0];
       }
     }
     callback(null, user, context);

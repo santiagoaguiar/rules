@@ -10,7 +10,7 @@ This rule will check if this is the first user login, and in that case will call
 
 > Note: this sample implements very basic error handling.
 
-```
+```js
 function (user, context, done) {
   user.app_metadata = user.app_metadata || {};
   if (user.app_metadata.recordedAsLead) {
@@ -91,7 +91,7 @@ function (user, context, done) {
         return callback(JSON.parse(b));
       });
   }
-  
+
   // don’t wait for the SF API call to finish, return right away (the request will continue on the sandbox)`
   done(null, user, context);
 }

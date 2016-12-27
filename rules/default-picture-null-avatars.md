@@ -5,7 +5,7 @@ categories:
 ---
 ## Default picture for null avatars
 
-Here is how to set a default picture for null avatars via a rule. 
+Here is how to set a default picture for null avatars via a rule.
 Here's an example that does this for email-based logins:
 
 ```js
@@ -15,7 +15,7 @@ function (user, context, callback) {
     var u = url.parse(user.picture, true);
     u.query.d = '<URL TO YOUR DEFAULT PICTURE HERE>';
     delete u.search;
-    user.picture = url.format(u);
+    context.idToken.picture = url.format(u);
   }
 
   callback(null, user, context);
