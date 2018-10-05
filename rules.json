@@ -27,7 +27,7 @@
           "access control"
         ],
         "description": "<p>This rule checks if the user&#39;s login email matches any domains configured in an enterprise connection. If there are no matches, the login is denied. But, if there are no domains configured it will allow access.</p>\n<p>Use this rule to only allow users from specific email domains to login.</p>\n<p>For example, ExampleCo has setup exampleco.com as a managed domain. They add exampleco.com to the email domains list in their SAML connection. Now, only users with an email ending with @exampleco.com (and not @examplecocorp.com) can login via SAML.</p>\n",
-        "code": "function (user, context, callback) {\n  const connectionOptions = context.connectionOptions;\n  const domainAliases = connectionOptions.domain_aliases || [];\n  const tenantDomain = connectionOptions.tenant_domain;\n\n  // No domains -> access allowed\n  if (!tenantDomain && !domainAliases.length) {\n    return callback(null, user, context);\n  }\n\n  // Domain aliases exist but no tenant domain exists\n  if (domainAliases.length && !tenantDomain) return callback('Access denied');\n\n  let allowedDomains = new Set([tenantDomain]);\n  domainAliases.forEach(function (alias) {\n    if (alias) allowedDomains.add(alias.toLowerCase());\n  });\n\n  // Access allowed if domain is found\n  const userEmailDomain = user.email.split('@')[1].toLowerCase();\n  if (allowedDomains.has(userEmailDomain)) return callback(null, user, context);\n\n  return callback('Access denied');\n}"
+        "code": "function (user, context, callback) {\n  const connectionOptions = context.connectionOptions;\n  const domainAliases = connectionOptions.domain_aliases || [];\n  const tenantDomain = connectionOptions.tenant_domain;\n\n  // No domains -> access allowed\n  if (!tenantDomain && !domainAliases.length) {\n    return callback(null, user, context);\n  }\n\n  // Domain aliases exist but no tenant domain exists\n  if (domainAliases.length && !tenantDomain) return callback('Access denied');\n\n  const allowedDomains = new Set([tenantDomain]);\n  domainAliases.forEach(function (alias) {\n    if (alias) allowedDomains.add(alias.toLowerCase());\n  });\n\n  // Access allowed if domain is found\n  const emailSplit = user.email.split('@');\n  const userEmailDomain = emailSplit[emailSplit.length - 1].toLowerCase();\n  if (allowedDomains.has(userEmailDomain)) return callback(null, user, context);\n\n  return callback('Access denied');\n}"
       },
       {
         "id": "check_last_password_reset",
@@ -523,6 +523,15 @@
         ],
         "description": "<p>This rule is used to trigger multifactor authentication with Auth0 when a condition is met.</p>\n<p>Upon first login, the user can enroll the device.</p>\n",
         "code": "function (user, context, callback) {\n\n  //var CLIENTS_WITH_MFA = ['REPLACE_WITH_YOUR_CLIENT_ID'];\n  // run only for the specified clients\n  // if (CLIENTS_WITH_MFA.indexOf(context.clientID) !== -1) {\n    // uncomment the following if clause in case you want to request a second factor only from user's that have user_metadata.use_mfa === true\n    // if (user.user_metadata && user.user_metadata.use_mfa){\n      context.multifactor = {\n        // required\n        provider: 'guardian', \n\n        // optional, defaults to true. Set to false to force Guardian authentication every time. \n        // See https://auth0.com/docs/multifactor-authentication/custom#change-the-frequency-of-authentication-requests for details\n        allowRememberBrowser: false\n      };\n    // }\n  //}\n\n  callback(null, user, context);\n}"
+      },
+      {
+        "id": "mfa",
+        "title": "Multifactor Authentication",
+        "categories": [
+          "multifactor"
+        ],
+        "description": "<p>This rule is used to trigger multifactor authentication when a condition is met.</p>\n",
+        "code": "function (user, context, callback) {\n  /*\n  You can trigger MFA conditionally by checking:\n  1. Client ID:\n  context.clientID === 'REPLACE_WITH_YOUR_CLIENT_ID'\n  2. User metadata:\n  user.user_metadata.use_mfa\n  */\n\n  // if (<condition>) {\n    context.multifactor = {\n      provider: 'any',\n\n      // optional, defaults to true. Set to false to force authentication every time.\n      // See https://auth0.com/docs/multifactor-authentication/custom#change-the-frequency-of-authentication-requests for details\n      allowRememberBrowser: false\n    };\n  //}\n\n  callback(null, user, context);\n}"
       }
     ]
   },
